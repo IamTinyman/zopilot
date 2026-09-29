@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.2
+
+- Add Cmd+V image attachments to the composer for PNG, JPEG, WebP, and GIF images.
+- Store pasted images under the Zotero profile without putting image bytes in
+  conversation state or logs.
+- Keep text paste behavior unchanged and ignore unsupported clipboard formats.
+
 ## 0.8.1
 
 - Update the Zotero compatibility range to include Zotero 10 (`10.*`).
