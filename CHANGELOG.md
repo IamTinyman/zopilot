@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.3
+
+- Add the Reader image annotation context menu entry for asking Zopilot about a region.
+- Copy selected region PNGs into Zopilot-owned profile storage before attaching them.
+- Open or reuse the current PDF workspace and focus the Composer without auto-sending.
+
 ## 0.8.2
 
 - Add Cmd+V image attachments to the composer for PNG, JPEG, WebP, and GIF images.

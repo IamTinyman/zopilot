@@ -90,6 +90,7 @@ function useComposerDraft(
   const activeComposerScopeRef = useRef("");
   const itemContextLoadTokenRef = useRef(0);
   const pasteTokenRef = useRef(0);
+  const consumedAttachmentSeedRef = useRef<string | undefined>(undefined);
   const mentionsRef = useRef(mentions);
   const noteContextsRef = useRef(noteContexts);
   const localAttachmentsRef = useRef(localAttachments);
@@ -181,6 +182,33 @@ function useComposerDraft(
     itemContextLoadTokenRef.current += 1;
     setActiveItemContextIndex(1);
   }, [composerScope, textSession]);
+
+  useEffect(() => {
+    const seed = state.pendingComposerAttachments;
+    if (
+      !seed ||
+      seed.conversationId !== state.conversationId ||
+      consumedAttachmentSeedRef.current === seed.id
+    ) {
+      return;
+    }
+    consumedAttachmentSeedRef.current = seed.id;
+    const next = mergeDroppedContext(
+      {
+        mentions: mentionsRef.current,
+        noteContexts: noteContextsRef.current,
+        localAttachments: localAttachmentsRef.current,
+      },
+      seed.attachments.map((attachment) => ({
+        kind: "local-attachment" as const,
+        attachment,
+      })),
+    );
+    localAttachmentsRef.current = next.localAttachments;
+    setLocalAttachments(next.localAttachments);
+    actions.consumePendingComposerAttachments(seed.id);
+    globalThis.setTimeout(() => textareaRef.current?.focus(), 0);
+  }, [actions, state.conversationId, state.pendingComposerAttachments]);
 
   useEffect(() => {
     return () => textSession.cancelPending();
