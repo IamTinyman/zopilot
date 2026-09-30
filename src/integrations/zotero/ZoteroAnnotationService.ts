@@ -112,6 +112,22 @@ function getImageAnnotationTarget(
   };
 }
 
+function getSelectedImageAnnotationTarget(
+  reader: _ZoteroTypes.ReaderInstance,
+): RegionAnnotationTarget | undefined {
+  // Zotero's createViewContextMenu exposes only x/y. The Reader state is the
+  // compatibility fallback that identifies the image annotation selected in the PDF view.
+  const selectedIDs = (
+    reader._internalReader as
+      { _state?: { selectedAnnotationIDs?: unknown } } | undefined
+  )?._state?.selectedAnnotationIDs;
+  if (!Array.isArray(selectedIDs)) return undefined;
+  return selectedIDs
+    .filter((id): id is string => typeof id === "string")
+    .map((id) => getImageAnnotationTarget(reader, id))
+    .find((target): target is RegionAnnotationTarget => Boolean(target));
+}
+
 async function copyRegionImage(
   target: RegionAnnotationTarget,
   deps: AnnotationServiceDependencies = {},
@@ -193,6 +209,14 @@ function createRegionAttachment(
     filename,
     kind: "image",
     mimeType: "image/png",
+    region: {
+      annotationKey: target.key,
+      attachmentKey: target.attachmentKey,
+      libraryID: target.libraryID,
+      pageIndex: target.pageIndex,
+      pageLabel: target.pageLabel,
+      title: target.title,
+    },
   };
 }
 
@@ -221,6 +245,7 @@ function findAnnotation(
 export {
   copyRegionImage,
   getImageAnnotationTarget,
+  getSelectedImageAnnotationTarget,
   MAX_REGION_IMAGE_BYTES,
   RegionAskError,
 };

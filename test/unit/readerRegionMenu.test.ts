@@ -8,9 +8,7 @@ describe("Reader region menu", function () {
   });
 
   it("adds a menu item for image annotations and unregisters it", function () {
-    let registeredHandler:
-      | _ZoteroTypes.Reader.EventHandler<"createAnnotationContextMenu">
-      | undefined;
+    const registeredHandlers = new Map<string, Function>();
     let unregisterCount = 0;
     const image = {
       id: 20,
@@ -40,11 +38,8 @@ describe("Reader region menu", function () {
         getByLibraryAndKey: () => image,
       },
       Reader: {
-        registerEventListener: (
-          _type: string,
-          handler: typeof registeredHandler,
-        ) => {
-          registeredHandler = handler;
+        registerEventListener: (_type: string, handler: Function) => {
+          registeredHandlers.set(_type, handler);
         },
         unregisterEventListener: () => {
           unregisterCount += 1;
@@ -52,6 +47,9 @@ describe("Reader region menu", function () {
       },
     };
     const dispose = registerReaderRegionMenu(() => undefined);
+    const registeredHandler = registeredHandlers.get(
+      "createAnnotationContextMenu",
+    );
     assert.isDefined(registeredHandler);
     if (!registeredHandler) return;
 
@@ -67,8 +65,25 @@ describe("Reader region menu", function () {
     });
 
     assert.equal(menu?.label, "zopilot-reader-ask-about-region");
+    const viewMenu: Array<{ label: string }> = [];
+    const viewHandler = registeredHandlers.get("createViewContextMenu");
+    assert.isDefined(viewHandler);
+    viewHandler?.({
+      reader: {
+        itemID: 10,
+        type: "pdf",
+        _internalReader: {
+          _state: { selectedAnnotationIDs: ["ANN-IMAGE"] },
+        },
+      } as _ZoteroTypes.ReaderInstance,
+      doc: {} as Document,
+      params: { x: 0, y: 0 },
+      append: (item: { label: string }) => viewMenu.push({ label: item.label }),
+      type: "createViewContextMenu",
+    });
+    assert.deepEqual(viewMenu, [{ label: "zopilot-reader-ask-about-region" }]);
     dispose();
-    assert.equal(unregisterCount, 1);
+    assert.equal(unregisterCount, 2);
   });
 });
 

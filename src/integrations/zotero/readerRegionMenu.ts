@@ -3,6 +3,7 @@ import { getString } from "../../app/localization";
 import {
   copyRegionImage,
   getImageAnnotationTarget,
+  getSelectedImageAnnotationTarget,
   RegionAskError,
   type RegionAnnotationTarget,
 } from "./ZoteroAnnotationService";
@@ -31,29 +32,27 @@ function registerReaderRegionMenu(
     return () => undefined;
   }
   let disposed = false;
-  const handler: _ZoteroTypes.Reader.EventHandler<
-    "createAnnotationContextMenu"
-  > = (event) => {
-    if (disposed) return;
-    const target = getImageAnnotationTarget(
-      event.reader,
-      event.params.currentID,
-    );
-    if (!target) return;
-    event.append({
+  const appendRegionMenu = (
+    reader: _ZoteroTypes.ReaderInstance,
+    target: RegionAnnotationTarget,
+    append: (item: {
+      label: string;
+      persistent: boolean;
+      onCommand: () => Promise<void>;
+    }) => void,
+  ) => {
+    append({
       label: getString("reader-ask-about-region"),
       persistent: true,
       onCommand: async () => {
         if (disposed) return;
         try {
-          const current = getImageAnnotationTarget(
-            event.reader,
-            event.params.currentID,
-          );
-          if (!current || current.id !== target.id)
+          const current = getImageAnnotationTarget(reader, target.key);
+          if (!current || current.id !== target.id) {
             throw new RegionAskError("unavailable");
+          }
           const attachment = await copyRegionImage(current);
-          if (!disposed) await onAsk(event.reader, current, attachment);
+          if (!disposed) await onAsk(reader, current, attachment);
         } catch (error) {
           if (disposed) return;
           const diagnostic =
@@ -66,10 +65,33 @@ function registerReaderRegionMenu(
       },
     });
   };
+  const annotationHandler: _ZoteroTypes.Reader.EventHandler<
+    "createAnnotationContextMenu"
+  > = (event) => {
+    if (disposed) return;
+    const target = getImageAnnotationTarget(
+      event.reader,
+      event.params.currentID,
+    );
+    if (!target) return;
+    appendRegionMenu(event.reader, target, event.append);
+  };
+  const viewHandler: _ZoteroTypes.Reader.EventHandler<
+    "createViewContextMenu"
+  > = (event) => {
+    const target = getSelectedImageAnnotationTarget(event.reader);
+    if (!target) return;
+    appendRegionMenu(event.reader, target, event.append);
+  };
   try {
     api.registerEventListener(
       "createAnnotationContextMenu",
-      handler,
+      annotationHandler,
+      config.addonID,
+    );
+    api.registerEventListener(
+      "createViewContextMenu",
+      viewHandler,
       config.addonID,
     );
   } catch {
@@ -79,7 +101,11 @@ function registerReaderRegionMenu(
   const dispose = () => {
     if (disposed) return;
     disposed = true;
-    api.unregisterEventListener("createAnnotationContextMenu", handler);
+    api.unregisterEventListener(
+      "createAnnotationContextMenu",
+      annotationHandler,
+    );
+    api.unregisterEventListener("createViewContextMenu", viewHandler);
     if (unregister === dispose) unregister = undefined;
   };
   unregister = dispose;
