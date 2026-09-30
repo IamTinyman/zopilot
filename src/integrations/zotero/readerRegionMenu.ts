@@ -68,11 +68,10 @@ function registerReaderRegionMenu(
   const annotationHandler: _ZoteroTypes.Reader.EventHandler<
     "createAnnotationContextMenu"
   > = (event) => {
+    const annotationID = event.params.currentID || event.params.ids[0];
+    if (!annotationID) return;
     if (disposed) return;
-    const target = getImageAnnotationTarget(
-      event.reader,
-      event.params.currentID,
-    );
+    const target = getImageAnnotationTarget(event.reader, annotationID);
     if (!target) return;
     appendRegionMenu(event.reader, target, event.append);
   };

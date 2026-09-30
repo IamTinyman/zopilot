@@ -57,7 +57,7 @@ describe("Reader region menu", function () {
     registeredHandler({
       reader: { itemID: 10, type: "pdf" } as _ZoteroTypes.ReaderInstance,
       doc: {} as Document,
-      params: { currentID: "ANN-IMAGE", ids: ["ANN-IMAGE"], x: 0, y: 0 },
+      params: { ids: ["ANN-IMAGE"], x: 0, y: 0 },
       append: (item) => {
         menu = item;
       },
