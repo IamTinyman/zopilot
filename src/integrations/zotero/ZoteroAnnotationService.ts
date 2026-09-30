@@ -45,7 +45,7 @@ type RegionAskErrorCode =
   | "unavailable"
   | "too-large"
   | "copy-failed"
-  | "sidebar-unavailable"
+  | "sidebar_unavailable"
   | "attachment-limit";
 
 class RegionAskError extends Error {

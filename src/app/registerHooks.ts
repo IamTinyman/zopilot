@@ -57,7 +57,7 @@ async function onStartup(): Promise<void> {
         unavailable: "reader-region-unavailable",
         "too-large": "reader-region-too-large",
         "copy-failed": "reader-region-copy-failed",
-        "sidebar-unavailable": "reader-region-sidebar-unavailable",
+        sidebar_unavailable: "reader-region-sidebar-unavailable",
         "attachment-limit": "reader-region-attachment-limit",
       } as const;
       Services.prompt.alert(

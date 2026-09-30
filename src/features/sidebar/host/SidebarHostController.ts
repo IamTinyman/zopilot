@@ -111,7 +111,7 @@ async function askAboutRegion(
       return;
     }
   }
-  throw new RegionAskError("sidebar-unavailable");
+  throw new RegionAskError("sidebar_unavailable");
 }
 
 async function prepareAllSidebarsForShutdown(): Promise<void> {
@@ -416,7 +416,7 @@ class SidebarHostController {
       !isPDFReader(reader) ||
       !this.canHandleReader(reader)
     ) {
-      throw new RegionAskError("sidebar-unavailable");
+      throw new RegionAskError("sidebar_unavailable");
     }
     if (this.hasDetachedWindow()) this.detachedWindow.close();
     const existing = this.getReadyDisplayState();
@@ -439,14 +439,14 @@ class SidebarHostController {
       ready.hostContext?.kind !== "reader" ||
       ready.reader?.tabID !== reader.tabID
     ) {
-      throw new RegionAskError("sidebar-unavailable");
+      throw new RegionAskError("sidebar_unavailable");
     }
     const source = ready.currentSource || ready.workspace.defaultSource;
     if (
       source?.libraryID !== target.libraryID ||
       source.attachmentKey !== target.attachmentKey
     ) {
-      throw new RegionAskError("sidebar-unavailable");
+      throw new RegionAskError("sidebar_unavailable");
     }
     this.updateViewState({
       pendingComposerAttachments: {
